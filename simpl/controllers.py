@@ -5,23 +5,33 @@ IDENTIFIERS = {cls.identifier: cls for cls in BaseModel.__subclasses__()}
 
 def controller(func):
     def wrap(arg):
-        try:
-            args = arg.split(" ")
-            cls_identifier = args[0]
-            if not cls_identifier in IDENTIFIERS:
-                raise Exception(
-                    "Not a valid data identifier, valid data identifiers are: {identifiers}".format(
-                        identifiers=", ".join(IDENTIFIERS)
-                    )
-                )
-            cls = IDENTIFIERS[cls_identifier]
-            return func(cls, args[1:])
-        except Exception as e:
-            print("ERROR:", e)
+        args = arg.split(" ")
+        return func(*args)
 
     return wrap
 
 
 @controller
-def create(cls, args):
-    return cls.create_with_args(*args)
+def create(*args):
+    cls_identifier = args[0]
+    if not cls_identifier in IDENTIFIERS:
+        raise Exception(
+            "Not a valid data identifier, valid data identifiers are: {identifiers}".format(
+                identifiers=", ".join(IDENTIFIERS)
+            )
+        )
+    cls = IDENTIFIERS[cls_identifier]
+    return cls.create_with_args(*args[1:])
+
+
+@controller
+def update(*args):
+    cls_identifier = args[0]
+    if not cls_identifier in IDENTIFIERS:
+        raise Exception(
+            "Not a valid data identifier, valid data identifiers are: {identifiers}".format(
+                identifiers=", ".join(IDENTIFIERS)
+            )
+        )
+    cls = IDENTIFIERS[cls_identifier]
+    return cls.update_with_args(*args[1:])
