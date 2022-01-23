@@ -26,23 +26,31 @@ class BaseModel(orm.Model, metaclass=BaseMeta):
         database = db
 
     @classmethod
-    def get_args(self, *args):
+    def get_args(cls, *args):
         raise Exception("Provide a class level implementation")
 
     @classmethod
-    def create_with_args(self, *args):
-        raise Exception("Provide a class level implementation")
+    def create_with_args(cls, *args):
+        raise Exception(
+            "Cannot create a {identifier} from console directly".format(
+                identifier=cls.identifier
+            )
+        )
 
     @classmethod
-    def update_with_args(self, *args):
-        raise Exception("Provide a class level implementation")
+    def update_with_args(cls, *args):
+        raise Exception(
+            "Cannot update a {identifier} from console directly".format(
+                identifier=cls.identifier
+            )
+        )
 
 
 class User(BaseModel):
     name = orm.CharField(unique=True)
     email = orm.CharField()
     credit_limit = orm.DecimalField(constraints=[orm.Check("credit_limit >= 0")])
-    dues = orm.DecimalField(default=0)
+    dues = orm.DecimalField(default=0, constraints=[orm.Check("dues >= 0")])
 
     def save(self, **kwargs):
         assert (
@@ -129,8 +137,10 @@ class Merchant(BaseModel):
 class Transaction(BaseModel):
     user = orm.ForeignKeyField(User, backref="transactions")
     merchant = orm.ForeignKeyField(Merchant, backref="transactions")
-    amount = orm.DecimalField()
-    merchant_discount = orm.DecimalField()
+    amount = orm.DecimalField(constraints=[orm.Check("amount >= 0")])
+    merchant_discount = orm.DecimalField(
+        constraints=[orm.Check("merchant_discount >= 0")]
+    )
 
     identifier = "txn"
 
@@ -147,6 +157,11 @@ class Transaction(BaseModel):
             except Exception as e:
                 transaction.rollback()
                 raise e
+
+    def __str__(self):
+        return "success! {user} -> {merchant} ({amount})".format(
+            user=self.user.name, merchant=self.merchant.name, amount=self.amount
+        )
 
     @classmethod
     def get_args(cls, *args: str):
@@ -175,3 +190,20 @@ class Transaction(BaseModel):
     @classmethod
     def update_with_args(self, *args):
         raise Exception("Updating an existing transaction is not allowed")
+
+
+class Payment(BaseModel):
+    user = orm.ForeignKeyField(User, backref="payments")
+    amount = orm.DecimalField(constraints=[orm.Check("amount >= 0")])
+
+    def save(self, **kwargs):
+        with db.atomic() as transaction:
+            assert self.user.dues <= self.amount, "Payback cannot be more than dues"
+            try:
+                self.user.dues -= self.amount
+                self.user.save()
+                return super().save(**kwargs)
+
+            except Exception as e:
+                transaction.rollback()
+                raise e

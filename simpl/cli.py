@@ -1,7 +1,7 @@
 import config
 import cmd
-from simpl.models import db, User, Merchant, Transaction
-from simpl.controllers import create, update
+from simpl.models import db, User, Merchant, Transaction, Payment
+from simpl.controllers import create, payback, update, report
 
 
 class SimplCLI(cmd.Cmd):
@@ -24,6 +24,25 @@ class SimplCLI(cmd.Cmd):
         except Exception as e:
             print("ERROR:", e)
 
+    def do_payback(self, arg):
+        """Payback amount for user"""
+        try:
+            payment = payback(arg)
+            print(
+                "{name} (dues:{dues})".format(
+                    name=payment.user.name, dues=payment.user.dues
+                )
+            )
+        except Exception as e:
+            print("ERROR:", e)
+
+    def do_report(self, arg):
+        """Generate reports"""
+        try:
+            print(report(arg))
+        except Exception as e:
+            print("ERROR:", e)
+
     def do_exit(self, arg):
         """Exit"""
         print("Goodbye!")
@@ -32,5 +51,5 @@ class SimplCLI(cmd.Cmd):
 
 if __name__ == "__main__":
     db.connect()
-    db.create_tables([User, Merchant, Transaction])
+    db.create_tables([User, Merchant, Transaction, Payment])
     SimplCLI().cmdloop()
