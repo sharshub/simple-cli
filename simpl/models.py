@@ -40,11 +40,8 @@ class BaseModel(orm.Model, metaclass=BaseMeta):
 class User(BaseModel):
     name = orm.CharField(unique=True)
     email = orm.CharField()
-    credit_limit = orm.DecimalField()
-
-    def save(self, **kwargs):
-        assert self.credit_limit >= 0, "Credit limit should be > 0"
-        return super().save(**kwargs)
+    credit_limit = orm.DecimalField(constraints=[orm.Check("credit_limit >= 0")])
+    dues = orm.DecimalField(default=0)
 
     def __str__(self):
         return "{name} ({credit_limit})".format(
@@ -84,13 +81,9 @@ class User(BaseModel):
 
 class Merchant(BaseModel):
     name = orm.CharField(unique=True)
-    discount_rate = orm.DecimalField()
-
-    def save(self, **kwargs):
-        assert (
-            0 <= self.discount_rate <= 100
-        ), "Discount rate should be between 0 and 100"
-        return super().save(**kwargs)
+    discount_rate = orm.DecimalField(
+        constraints=[orm.Check("discount_rate >= 0"), orm.Check("discount_rate <= 100")]
+    )
 
     def __str__(self):
         return "{name} ({discount_rate}%)".format(
@@ -132,10 +125,6 @@ class Transaction(BaseModel):
     amount = orm.DecimalField()
 
     identifier = "txn"
-
-    def save(self, **kwargs):
-        assert 0 <= self.amount <= 100, "Amount should be between 0 and 100"
-        return super().save(**kwargs)
 
     @classmethod
     def create_with_args(cls, *args):
