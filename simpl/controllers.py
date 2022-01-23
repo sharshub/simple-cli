@@ -1,4 +1,4 @@
-from simpl.models import ModelBase, Merchant, Payment, User
+from simpl.models import ModelBase, Payment, User
 from simpl.reports import ReportBase
 import re
 from decimal import Decimal

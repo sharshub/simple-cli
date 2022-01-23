@@ -156,7 +156,7 @@ class Payment(ModelBase):
 
     def save(self, **kwargs):
         with db.atomic() as transaction:
-            assert self.user.dues <= self.amount, "Payback cannot be more than dues"
+            assert self.user.dues >= self.amount, "Payback cannot be more than dues"
             try:
                 self.user.dues -= self.amount
                 self.user.save()

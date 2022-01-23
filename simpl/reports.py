@@ -1,4 +1,6 @@
+import peewee as orm
 from utils.reports import ReportBase
+from simpl.models import Merchant, Transaction, User
 
 
 class DiscountReport(ReportBase):
@@ -6,7 +8,21 @@ class DiscountReport(ReportBase):
 
     @classmethod
     def generate(cls, *args):
-        return super().generate(*args)
+        assert len(args) >= 1, "Merchant name required for generating discount report"
+        merchant_name = args[0]
+        if not Merchant.select().where(Merchant.name == merchant_name).exists():
+            raise Exception(
+                "Merchant {merchant_name} not found".format(merchant_name=merchant_name)
+            )
+        merchant = Merchant.get(name=merchant_name)
+
+        result = (
+            Transaction.select(orm.fn.SUM(Transaction.merchant_discount))
+            .where(Transaction.merchant == merchant)
+            .scalar()
+        ) or 0
+
+        return result
 
 
 class DuesReport(ReportBase):
@@ -14,7 +30,12 @@ class DuesReport(ReportBase):
 
     @classmethod
     def generate(cls, *args):
-        return super().generate(*args)
+        assert len(args) >= 1, "User name required for generating dues report"
+        user_name = args[0]
+        if not User.select().where(User.name == user_name).exists():
+            raise Exception("User {user_name} not found".format(user_name=user_name))
+        user = User.get(name=user_name)
+        return user.dues
 
 
 class UsersAtCreditLimitReport(ReportBase):
@@ -22,7 +43,11 @@ class UsersAtCreditLimitReport(ReportBase):
 
     @classmethod
     def generate(cls, *args):
-        return super().generate(*args)
+        users = User.select().where(User.credit_limit == User.dues)
+        if len(users) == 0:
+            return "No users at credit limit"
+        else:
+            return "\n".join(user.name for user in users)
 
 
 class TotalDuesReport(ReportBase):
@@ -30,4 +55,9 @@ class TotalDuesReport(ReportBase):
 
     @classmethod
     def generate(cls, *args):
-        return super().generate(*args)
+        users = User.select().where(User.dues > 0)
+        if len(users) == 0:
+            return "No dues!"
+        return "\n".join(
+            "{name}: {dues}".format(name=user.name, dues=user.dues) for user in users
+        )
