@@ -1,8 +1,10 @@
-from simpl.models import BaseModel, Payment, User
+from simpl.models import ModelBase, Merchant, Payment, User
+from simpl.reports import ReportBase
 import re
 from decimal import Decimal
 
-IDENTIFIERS = {cls.identifier: cls for cls in BaseModel.__subclasses__()}
+IDENTIFIERS = {cls.identifier: cls for cls in ModelBase.__subclasses__()}
+REPORTS = {cls.report_name: cls for cls in ReportBase.__subclasses__()}
 
 
 def controller(func):
@@ -55,4 +57,14 @@ def payback(*args):
 
 @controller
 def report(*args):
-    pass
+    _report = args[0]
+
+    if not _report in REPORTS:
+        raise Exception(
+            "Unknown report, valid reports are {reports}".format(
+                reports=", ".join(REPORTS)
+            )
+        )
+
+    cls = REPORTS[_report]
+    return cls.generate(*args[1:])

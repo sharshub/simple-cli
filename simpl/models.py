@@ -1,52 +1,10 @@
 import peewee as orm
+from utils.models import ModelBase, db
 import re
 from decimal import Decimal
 
-from simpl.config import db_name
 
-db = orm.SqliteDatabase(db_name)
-
-
-class BaseMeta(orm.ModelBase):
-    """Extends the metaclass of Base Model to include identifier tags in our classes"""
-
-    def __new__(cls, name, bases, attrs):
-        if not "identifier" in attrs:
-            attrs["identifier"] = name.lower()
-        if not hasattr(cls, "_identifiers"):
-            setattr(cls, "_identifiers", {})
-        if attrs["identifier"] in cls._identifiers:
-            raise Exception("Two classes cannot have the same identifier")
-        cls._identifiers[attrs["identifier"]] = name
-        return super().__new__(cls, name, bases, attrs)
-
-
-class BaseModel(orm.Model, metaclass=BaseMeta):
-    class Meta:
-        database = db
-
-    @classmethod
-    def get_args(cls, *args):
-        raise Exception("Provide a class level implementation")
-
-    @classmethod
-    def create_with_args(cls, *args):
-        raise Exception(
-            "Cannot create a {identifier} from console directly".format(
-                identifier=cls.identifier
-            )
-        )
-
-    @classmethod
-    def update_with_args(cls, *args):
-        raise Exception(
-            "Cannot update a {identifier} from console directly".format(
-                identifier=cls.identifier
-            )
-        )
-
-
-class User(BaseModel):
+class User(ModelBase):
     name = orm.CharField(unique=True)
     email = orm.CharField()
     credit_limit = orm.DecimalField(constraints=[orm.Check("credit_limit >= 0")])
@@ -94,7 +52,7 @@ class User(BaseModel):
             raise Exception("Merchant {name} does not exist".format(name=_name))
 
 
-class Merchant(BaseModel):
+class Merchant(ModelBase):
     name = orm.CharField(unique=True)
     discount_rate = orm.DecimalField(
         constraints=[orm.Check("discount_rate >= 0"), orm.Check("discount_rate <= 100")]
@@ -134,7 +92,7 @@ class Merchant(BaseModel):
             raise Exception("Merchant {name} does not exist".format(name=_name))
 
 
-class Transaction(BaseModel):
+class Transaction(ModelBase):
     user = orm.ForeignKeyField(User, backref="transactions")
     merchant = orm.ForeignKeyField(Merchant, backref="transactions")
     amount = orm.DecimalField(constraints=[orm.Check("amount >= 0")])
@@ -192,7 +150,7 @@ class Transaction(BaseModel):
         raise Exception("Updating an existing transaction is not allowed")
 
 
-class Payment(BaseModel):
+class Payment(ModelBase):
     user = orm.ForeignKeyField(User, backref="payments")
     amount = orm.DecimalField(constraints=[orm.Check("amount >= 0")])
 
