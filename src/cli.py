@@ -1,7 +1,7 @@
 import config
 import cmd
-from simple.models import db, User, Merchant, Transaction, Payment
-from simple.controllers import create, payback, update, report
+from src.models import db, User, Merchant, Transaction, Payment
+from src.controllers import create, payback, update, report
 
 
 class SimpleCLI(cmd.Cmd):
