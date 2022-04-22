@@ -1,4 +1,4 @@
-# simpl-cli
+# simple-cli
 
 ## Installation
 Create a virtual environment and activate
@@ -12,7 +12,7 @@ pip install -r requirements.txt
 ```
 Installation is complete. You can enter the CLI by typing
 ```python
-python simpl/cli.py
+python simple/cli.py
 ```
 When you enter the CLI for the first time, an SQLite DB is automatically created.
 
