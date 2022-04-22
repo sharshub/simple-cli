@@ -1,6 +1,6 @@
 import peewee as orm
 
-from simpl.config import db_name
+from simple.config import db_name
 
 db = orm.SqliteDatabase(db_name)
 

@@ -1,6 +1,6 @@
 import peewee as orm
 from utils.reports import ReportBase
-from simpl.models import Merchant, Transaction, User
+from simple.models import Merchant, Transaction, User
 
 
 class DiscountReport(ReportBase):

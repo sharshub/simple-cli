@@ -1,5 +1,5 @@
-from simpl.models import ModelBase, Payment, User
-from simpl.reports import ReportBase
+from simple.models import ModelBase, Payment, User
+from simple.reports import ReportBase
 import re
 from decimal import Decimal
 

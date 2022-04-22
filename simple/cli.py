@@ -1,11 +1,11 @@
 import config
 import cmd
-from simpl.models import db, User, Merchant, Transaction, Payment
-from simpl.controllers import create, payback, update, report
+from simple.models import db, User, Merchant, Transaction, Payment
+from simple.controllers import create, payback, update, report
 
 
-class SimplCLI(cmd.Cmd):
-    intro = "Welcome to Simpl CLI tool. Enter '?' for commands, 'exit' to exit."
+class SimpleCLI(cmd.Cmd):
+    intro = "Welcome to Simple CLI tool. Enter '?' for commands, 'exit' to exit."
     prompt = "> "
 
     def do_new(self, arg):
@@ -52,4 +52,4 @@ class SimplCLI(cmd.Cmd):
 if __name__ == "__main__":
     db.connect()
     db.create_tables([User, Merchant, Transaction, Payment])
-    SimplCLI().cmdloop()
+    SimpleCLI().cmdloop()
